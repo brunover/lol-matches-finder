@@ -56,16 +56,7 @@ class SummonerForm extends React.Component {
         }
         
         // Fetches summoner data
-        axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}?api_key=RGAPI-4dec21c2-c9e2-4e4f-a880-bf5648991136`, {
-            method: 'GET',
-            mode: 'no-cors',
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json',
-            },
-            withCredentials: true,
-            credentials: 'same-origin',
-        })
+        axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`)
             .then(response => {
                 return response.json()
             })
