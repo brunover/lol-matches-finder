@@ -23,6 +23,7 @@
 }
 
 .Summoner-finder-form {
+  position: relative;
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
@@ -31,6 +32,11 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: yellow;
+}
+
+.Summoner-matches {
+  position: relative;
+  margin-top: 30px;
 }
 
 @keyframes App-logo-spin {
