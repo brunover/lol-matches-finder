@@ -1,5 +1,7 @@
 import React from "react";
 
+const axios = require('axios');
+
 /**
  * Checks if the summoner name is invalid
  * @param {String} name 
@@ -54,7 +56,16 @@ class SummonerForm extends React.Component {
         }
         
         // Fetches summoner data
-        fetch(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`)
+        axios.get(`https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`, {
+            method: 'GET',
+            mode: 'no-cors',
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true,
+            credentials: 'same-origin',
+        })
             .then(response => {
                 return response.json()
             })
