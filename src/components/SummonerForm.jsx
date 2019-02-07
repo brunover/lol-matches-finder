@@ -17,18 +17,18 @@ const isInvalidSummonerName = (name) => {
 /**
  * Show loading prompt while awaits the fetch resolve
  */
-const showLoadingPrompt = (thisBind) => {
+const showLoadingPrompt = () => {
     document.querySelector('#submitBtnID').disabled = true
-    thisBind.setState({matchesTable: '...Loading'})
+    document.querySelector('#matchesTableID').innerHTML = '...Loading'
 }
 
 /**
  * Hides loading prompt after fetch resolve
  * @param {String} msg Optional msg to display after hiding loading
  */
-const hideLoadingPrompt = (thisBind, msg = '') => {
+const hideLoadingPrompt = (msg = '') => {
     document.querySelector('#submitBtnID').disabled = false
-    thisBind.setState({matchesTable: msg})
+    document.querySelector('#matchesTableID').innerHTML = msg
 }
 
 class SummonerForm extends React.Component {
@@ -36,7 +36,7 @@ class SummonerForm extends React.Component {
         super(props);
         this.state = {
             summonerName: '',
-            matchesTable: ''
+            matchesTable: []
         };
 
         this.handleChange = this.handleChange.bind(this);
@@ -49,7 +49,7 @@ class SummonerForm extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault()
-        showLoadingPrompt(this)
+        showLoadingPrompt()
 
         const summonerName = this.state.summonerName
         if (isInvalidSummonerName(summonerName)) {
@@ -61,7 +61,7 @@ class SummonerForm extends React.Component {
         const summonerByNameAPI = `${process.env.REACT_APP_API_V4_SUMMONER_BY_NAME}/${summonerName}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`;
         axios.get(process.env.REACT_APP_PROXY_URL + summonerByNameAPI)
             .then(summoner => {
-                hideLoadingPrompt(this)
+                hideLoadingPrompt()
 
                 // Retrieve accountId from summoner data
                 const accountId = summoner.data.accountId
@@ -74,7 +74,7 @@ class SummonerForm extends React.Component {
                         
                         // Checks if matchlist contains matches
                         if (matches.length === 0) {
-                            hideLoadingPrompt(this, 'This Summoner has not played matches yet')
+                            hideLoadingPrompt('This Summoner has not played matches yet')
                             return
                         }
 
@@ -88,13 +88,12 @@ class SummonerForm extends React.Component {
                             
                             axios.get(process.env.REACT_APP_PROXY_URL + matchByIdAPI)
                                 .then(matchDetails => {
-                                    console.log(matchDetails)
                                     const participantIdentities = matchDetails.data.participantIdentities
                                     const summonerParticipantIdenty = participantIdentities.find(par => par.player.summonerName.toLowerCase() === summonerName.toLowerCase())
                                     
                                     const participants = matchDetails.data.participants
                                     const summonerParticipantDetails = participants.find(par => par.participantId === summonerParticipantIdenty.participantId)
-                                    const outcome = summonerParticipantDetails.stats.win
+                                    const outcome = summonerParticipantDetails.stats.win ? 'Winner' : 'Defeated'
                                     
                                     const gameDurationFloat = matchDetails.data.gameDuration === 0 ? 0 : (matchDetails.data.gameDuration) / 60
                                     const gameDurationMinutes = Math.floor(gameDurationFloat)
@@ -120,6 +119,7 @@ class SummonerForm extends React.Component {
                                     const minionsScorePerMinute = totalMinionsKilled === 0 ? 0 : (totalMinionsKilled / gameDurationMinutes)
 
                                     matchesTable.push({
+                                        gameId,
                                         summonerName,
                                         outcome,
                                         gameDuration: `${gameDurationMinutes}m ${gameDurationSeconds}s`,
@@ -133,11 +133,12 @@ class SummonerForm extends React.Component {
                                         minionsScorePerMinute,
                                     })
                                 })
+                                .then(() => this.setState({matchesTable}))
                         }
                     })                
             })
             .catch(error => { 
-                hideLoadingPrompt(this, 'An error occurred while trying to retrieve your matches. Please try again later...')
+                hideLoadingPrompt('An error occurred while trying to retrieve your matches. Please try again later...')
                 console.error(error)
             })
     }
@@ -152,7 +153,23 @@ class SummonerForm extends React.Component {
                 </form>
 
                 <div id="matchesTableID" className="Summoner-matches">
-                    {this.state.matchesTable}
+                    {this.state.matchesTable.map(match => 
+                        (
+                            <ul key={match.gameId}>
+                                <li>Summoner Name: {match.summonerName}</li>
+                                <li>Outcome: {match.outcome}</li>
+                                <li>Duration: {match.gameDuration}</li>
+                                <li>Spells: {match.summonerSpells}</li>
+                                <li>Runes: {match.summonerRunes}</li>
+                                <li>Champion Name: {match.championName}</li>
+                                <li>K/D/A: {match.kdaScore}</li>
+                                <li>Items: {match.items.join(', ')}</li>
+                                <li>Champ Level: {match.champLevel}</li>
+                                <li>Total Minions Killed: {match.totalMinionsKilled}</li>
+                                <li>Minions Score Per Minute: {match.minionsScorePerMinute.toFixed(2)}</li>
+                            </ul>
+                        )
+                    )}
                 </div>
             </div>
         );
