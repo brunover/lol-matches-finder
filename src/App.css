@@ -39,6 +39,16 @@
   margin-top: 30px;
 }
 
+.matches-wrapper {
+  border-bottom: 2px solid #6d6d6d;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+}
+
+.matches-wrapper p {
+  font-size: 12px;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
