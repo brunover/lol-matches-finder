@@ -182,9 +182,13 @@ class SummonerForm extends React.Component {
           });
       })
       .catch(error => {
-        hideLoadingPrompt(
-          "An error occurred while trying to retrieve your matches. Please try again later..."
-        );
+        if (error.response.status === 404) {
+          hideLoadingPrompt("This Summoner name could not be found...");
+        } else {
+          hideLoadingPrompt(
+            "An error occurred while trying to retrieve your matches. Please try again later..."
+          );
+        }
         console.error(error);
       });
   }
