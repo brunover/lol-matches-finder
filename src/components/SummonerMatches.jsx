@@ -1,9 +1,9 @@
-import React from "react";
-import { Row, Col, Badge } from "react-bootstrap";
+import React from "react"
+import { Row, Col, Badge } from "react-bootstrap"
 
 const SummonerMatches = props => {
   return (
-    <div key={props.matchs.gameId} className="matches-wrapper">
+    <div className="matches-wrapper">
       <Row bg={props.matchs.outcome ? "blue" : "red"}>
         <Col md="4">
           <Badge variant={props.matchs.outcome ? "primary" : "danger"}>
@@ -13,7 +13,7 @@ const SummonerMatches = props => {
           <p>K/D/A: {props.matchs.kdaScore}</p>
         </Col>
         <Col md="4">
-          <h1>Champion Name: {props.matchs.championName}</h1>
+          <h3>Champion Name: {props.matchs.championName}</h3>
           <p>Spells: {props.matchs.summonerSpells}</p>
           <p>Runes: {props.matchs.summonerRunes}</p>
         </Col>
@@ -32,4 +32,4 @@ const SummonerMatches = props => {
   );
 };
 
-export default SummonerMatches;
+export default SummonerMatches
