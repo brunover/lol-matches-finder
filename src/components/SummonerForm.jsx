@@ -1,6 +1,5 @@
 import React from "react";
-
-const axios = require('axios');
+import axios from 'axios';
 
 /**
  * Checks if the summoner name is invalid
@@ -25,16 +24,20 @@ const showLoadingPrompt = () => {
 
 /**
  * Hides loading prompt after fetch resolve
+ * @param {String} msg Optional msg to display after hiding loading
  */
-const hideLoadingPrompt = () => {
+const hideLoadingPrompt = (msg = '') => {
     document.querySelector('#submitBtnID').disabled = false
-    document.querySelector('#matchesTableID').innerHTML = ''
+    document.querySelector('#matchesTableID').innerHTML = msg
 }
 
 class SummonerForm extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {summonerName: ''};
+        this.state = {
+            summonerName: '',
+            summonerMatches: []
+        };
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -50,24 +53,46 @@ class SummonerForm extends React.Component {
 
         let summonerName = this.state.summonerName
         if (isInvalidSummonerName(summonerName)) {
-            alert('Please inform a valid Summoner name!')
-            hideLoadingPrompt()
+            hideLoadingPrompt('Please inform a valid Summoner name!')
             return
         }
         
         // Fetches summoner data
-        const api = `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summonerName}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`;
-        axios.get(`${process.env.REACT_APP_PROXY_URL}` + api)
-            .then(response => {
-                hideLoadingPrompt()
-                return response
-            })
+        const summonerByNameAPI = `${process.env.REACT_APP_API_V4_SUMMONER_BY_NAME}/${summonerName}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`;
+        axios.get(process.env.REACT_APP_PROXY_URL + summonerByNameAPI)
             .then(summoner => {
-                
-                console.log(summoner)
+                hideLoadingPrompt()
+
+                // Retrieve accountId from summoner data
+                const accountId = summoner.data.accountId
+
+                // Fetchs matchlist
+                const matchlistByAccountAPI = `${process.env.REACT_APP_API_V4_MATCHLIST_BY_ACCOUNT}/${accountId}?endIndex=10&api_key=${process.env.REACT_APP_RIOT_API_KEY}`;
+                axios.get(process.env.REACT_APP_PROXY_URL + matchlistByAccountAPI)
+                    .then(matchlist => {
+                        const matches = matchlist.data.matches
+                        
+                        // Checks if matchlist contains matches
+                        if (matches.length === 0) {
+                            hideLoadingPrompt('This Summoner has not played matches yet')
+                            return
+                        }
+
+                        for (let match of matches) {
+                            // Retrieve gameId from the match to fetch details
+                            const gameId = match.gameId
+                            
+                            // Fetchs the game details
+                            const matchByIdAPI = `${process.env.REACT_APP_API_V4_MATCH_BY_ID}/${gameId}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`;
+                            axios.get(process.env.REACT_APP_PROXY_URL + matchByIdAPI)
+                                .then(matchDetails => {
+
+                                })
+                        }
+                    })                
             })
             .catch(error => { 
-                hideLoadingPrompt()
+                hideLoadingPrompt('An error occurred while trying to retrieve your matches. Please try again later...')
                 console.error(error)
             })
     }
