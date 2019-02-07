@@ -47,7 +47,7 @@ const handleFetchError = (error) => {
     } else {
         hideLoadingPrompt("An error occurred while trying to retrieve your matches. Please try again later...")
     }
-    console.error(error)
+    throw new Error(error)
 }
 
 /**
@@ -100,7 +100,7 @@ const fetchMatchList = async (accountId) => {
  * @param {Array} matches 
  */
 const fetchMatchDetails = async (matches, summonerName) => {
-    let matchesArray = []
+    let matchesDetails = []
 
     for (let match of matches) {
         // Retrieve gameId from the match to fetch details
@@ -148,7 +148,7 @@ const fetchMatchDetails = async (matches, summonerName) => {
                 const totalMinionsKilled = summonerParticipantDetails.stats.totalMinionsKilled
                 const minionsScorePerMinute = totalMinionsKilled === 0 ? 0 : totalMinionsKilled / gameDurationMinutes
 
-                matchesArray.push({
+                matchesDetails.push({
                     gameId,
                     summonerName,
                     outcome,
@@ -165,7 +165,7 @@ const fetchMatchDetails = async (matches, summonerName) => {
         })
     }
 
-    return matchesArray;
+    return matchesDetails;
 }
 
 class SummonerForm extends React.Component {
@@ -173,7 +173,7 @@ class SummonerForm extends React.Component {
     super(props);
     this.state = {
       summonerName: "",
-      matchesArray: []
+      matchesDetails: []
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -188,27 +188,33 @@ class SummonerForm extends React.Component {
     event.preventDefault();
     showLoadingPrompt();
 
+    this.setState({ matchesDetails: [] });
+
     const summonerName = this.state.summonerName;
     if (isInvalidSummonerName(summonerName)) {
       hideLoadingPrompt("Please inform a valid Summoner name!");
       return;
     }
 
-    // Retrieve accountId from summoner data
-    const accountId = await fetchSummoner(summonerName)
-    
-    // Retrieve matches from the accountId
-    const matches = await fetchMatchList(accountId)
+    try {
+        // Retrieve accountId from summoner data
+        const accountId = await fetchSummoner(summonerName)
+        
+        // Retrieve matches from the accountId
+        const matches = await fetchMatchList(accountId)
 
-    // Retrieve details for every match found
-    const matchesDetails = await fetchMatchDetails(matches, summonerName)
-    
-    hideLoadingPrompt();
-    this.setState({ matchesDetails });
+        // Retrieve details for every match found
+        const matchesDetails = await fetchMatchDetails(matches, summonerName)
+        
+        hideLoadingPrompt();
+        this.setState({ matchesDetails });
+    } catch (error) {
+        return
+    }
   }
 
   render() {
-    const { summonerName, matchesArray } = this.state;
+    const { summonerName, matchesDetails } = this.state;
 
     return (
       <div className="Summoner-finder-form">
@@ -235,9 +241,9 @@ class SummonerForm extends React.Component {
 
         <div id="messagePromptID" />
 
-        <div id="matchesArrayID" className="Summoner-matches">
-          {matchesArray &&
-            matchesArray.map(match => <SummonerMatches key={match.gameId} matchs={match} />)}
+        <div id="matchesDetailsID" className="Summoner-matches">
+          {matchesDetails &&
+            matchesDetails.map(match => <SummonerMatches key={match.gameId} matchs={match} />)}
         </div>
       </div>
     );
