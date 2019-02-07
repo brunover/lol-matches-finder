@@ -86,7 +86,6 @@ class SummonerForm extends React.Component {
                             const matchByIdAPI = `${process.env.REACT_APP_API_V4_MATCH_BY_ID}/${gameId}?api_key=${process.env.REACT_APP_RIOT_API_KEY}`;
                             axios.get(process.env.REACT_APP_PROXY_URL + matchByIdAPI)
                                 .then(matchDetails => {
-
                                 })
                         }
                     })                
