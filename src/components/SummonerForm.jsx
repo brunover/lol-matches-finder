@@ -40,10 +40,12 @@ const hideLoadingPrompt = (msg = "") => {
  * @param {Error} error 
  */
 const handleFetchError = (error) => {
-    if (error.response.status === 404) {
+    if (error.response.status === 403) {
+        hideLoadingPrompt("The Riot API Key was rejected, please update the API Key...")
+    } else if (error.response.status === 404) {
         hideLoadingPrompt("This Summoner name could not be found...")
     } else if (error.response.status === 429) {
-        hideLoadingPrompt("Too many requests. Please try again later...")
+      hideLoadingPrompt("Too many requests. Please try again later...")
     } else {
         hideLoadingPrompt("An error occurred while trying to retrieve your matches. Please try again later...")
     }
